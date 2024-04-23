@@ -30,9 +30,9 @@ can be less bytes:
 - Instead of ```mov rdi, 1```, we can ```xor rdi, rdi``` then ```inc rdi.```
 
 # TODO:
-    - [ ] Write the 32 bit version.
-    - [ ] Optimize the byte code.
-    - [ ] Create a .data section instead of putting the data in the program header.
+- [ ] Write the 32 bit version.
+- [ ] Optimize the byte code.
+- [ ] Create a .data section instead of putting the data in the program header.
 
 # References:
 - https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
