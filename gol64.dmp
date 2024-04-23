@@ -1,0 +1,693 @@
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ELF HEADER <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+7F 45 4C 46     # 04 e_ident[EI_MAGIC0-3] 0x7F 'E' 'L' 'F', ELF magic number
+02              # 05 e_ident[EI_CLASS]    1 = 32-bit, (2 = 64-bit)
+   01           # 06 e_ident[EI_DATA]     (1 = little-endian), 2 = big-endian
+      01        # 07 e_ident[EI_VERSION]  ELF header version: must be 1
+         00     # 08 e_ident[EI_OSABI]    System V
+
+00              # 09 e_ident[EI_ABIVERSION], ABI version; 0 is ok for Linux
+   00 00 00     # 0C e_ident[EI_PAD], not used, should be filled with zeros
+00 00 00 00     # 10
+
+02 00           # 12 e_type, object file type; 0x2 = Executable
+      3E 00     # 14 e_machine, target instruction set architecture = 0x3E = (x86_64)
+01 00 00 00     # 18 e_version, object file version
+
+78 00 40 00     # 1C e_entry, memory address of entry point (where process starts)
+00 00 00 00     # 20
+
+40 00 00 00     # 24 e_phoff: file offset where program headers begin
+00 00 00 00     # 28
+
+00 00 00 00     # 2C e_shoff: file offset where section headers begin
+00 00 00 00     # 30
+
+00 00 00 00     # 34 e_flags: 0 for x86
+64 00           # 36 e_ehsize: size of this header (52 for 32-bit, 64 for 64-bit)
+
+      38 00     # 38 e_phentsize: sizeo of each program header (20: 32-bit, 38: 64-bit)
+
+01 00           # 3A e_phnum: number of program headers
+      40 00     # 3C e_shentsize: size of each section header
+                # (28 for 32-bit, 40 for 64-bit)
+
+00 00           # 3E e_shnum: number of sections headers
+      00 00     # 40 e_shstrndx: index of section header containing section names
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> ELF PROGRAM HEADER <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+01 00 00 00     # 44 p_type: segment type; 1 = loadable
+07 00 00 00     # 48 [FIXME] p_flags: segment-dependent flags (1=X, 2=W, 4=R)
+
+78 00 00 00     # 4C p_offset: file offset where segment begins
+00 00 00 00     # 50
+
+78 00 40 00     # 54 FIXME p_vaddr: virtual address of segment in memory 
+00 00 00 00     # 58
+
+00 00 00 00     # 5C p_paddr: physical address of segment
+00 00 00 00     # 60
+
+
+1D 04 00 00     # 64 [FIXME] p_filesz: size in bytes of the segment in 
+00 00 00 00     # 68 the file image
+
+9D 10 00 00     # 6C [FIXME] p_memsz: size in bytes of the segment in memory; 
+00 00 00 00     # 70
+
+00 10 00 00     # 70 p_align: 1000 for x86
+00 00 00 00     # 78
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> PROGRAM SEGMENT <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+# OFF   ASM                 INST                OPCODE              ModRM
+# 78    start:
+#       call init_grid      CALL rel32          E8 cd
+E8 70 00 00 00              # (0xED - 0x7D) = 0x70 [FIXME]   
+# 7D    .loop:
+# 7D    call display_grid   CALL rel32          E8 cd
+E8 91 01 00 00              # (0x213 - 0x82) = 0x191 [FIXME]   
+#  82   call sleep          CALL rel32          E8 cd
+E8 7D 03 00 00              # (0x404 - 0x87) = 0x37D [FIXME]   
+# 87    mov rdi, escape_msg 
+#                           MOV r/m64, imm32    REX.W C7 /0 id      11 000 111
+48 C7 C7 13 04 40 00        # [FIXME]
+# 8E    mov rsi, QWORD [len_escape = 10] => mov rsi, 10
+#                           MOV r/m64, imm32    REX.W C7 /0 id      11 000 110
+48 C7 C6 0A 00 00 00
+# 95    call puts           CALL rel32          E8 cd
+E8 37 00 00 00              # (0xD1 - 0x9A) = 0x37 [FIXME]
+# 9A    call next_gen       CALL rel32          E8 cd
+E8 98 02 00 00              # (0x337 - 0x9F) = 0x298 [FIXME]
+# 9F    jmp .loop           JMP rel8            EB cb
+EB DC                       # - (A1 - 7D) = - 0x24 = 1 + 0xFF - 0x24 = 0xDC [FIXME]
+
+# A1    exit(0):
+# A1    mov rax, (60) EXIT_SYS
+#                           MOV r/m64, imm32    REX.W C7 /0 id      11 000 000
+48 C7 C0 3C 00 00 00
+# A8    mov rdi, 0          MOV r/m64, imm32    REX.W C7 /0 id      11 000 111
+48 C7 C7 00 00 00 00
+# AF    syscall             SYSCALL             0F 05
+0F 05
+
+
+# OFF   ASM                 INST                OPCODE              ModRM
+# B1    putc:
+# B1    push rbp            PUSH r64            50+rd
+55
+# B2    mov rbp, rsp        MOV r/m64, r64      REX.W + 89 /r       11 100 101
+48 89 E5
+# B5    mov rsi, rdi        MOV r/m64, r64      REX.W + 89 /r       11 111 110
+48 89 FE
+# B8    mov rax, 1          MOV r/m64, imm32    REX.W C7 /0 id      11 000 000
+48 C7 C0 01 00 00 00
+# BF    mov rdi, 1          MOV r/m64, imm32    REX.W C7 /0 id      11 000 111
+48 C7 C7 01 00 00 00
+# C6    mov rdx, 1          MOV r/m64, imm32    REX.W C7 /0 id      11 000 010
+48 C7 C2 01 00 00 00
+# CD    syscall
+0F 05
+# CF    pop rbp             POP r64             58+rd
+5D
+# D0    ret                 RET                 C3
+C3
+
+
+# OFF   ASM                 INST                OPCODE              ModRM
+# D1    puts:
+# D1    push rbp            PUSH r64            50+rd
+55
+# D2    mov rbp, rsp        MOV r/m64, r64      REX.W + 89 /r       11 100 101
+48 89 E5
+# D5    mov rdx, rsi        MOV r/m64, r64      REX.W + 89 /r       11 110 010
+48 89 F2
+# D8    mov rsi, rdi        MOV r/m64, r64      REX.W + 89 /r       11 111 110
+48 89 FE
+# DB    mov rax, 1          MOV r/m64, imm32    REX.W C7 /0 id      11 000 000
+48 C7 C0 01 00 00 00
+# E2    mov rdi, 1          MOV r/m64, imm32    REX.W C7 /0 id      11 000 111
+48 C7 C7 01 00 00 00
+# E9    syscall
+0F 05
+# EB    pop rbp             POP r64             58+rd
+5D
+# EC    ret                 RET                 C3
+C3
+
+
+# OFF   ASM                 INST                OPCODE              ModRM
+# ED    init_grid:     
+# ED    push rbp            PUSH r64            50+rd
+55
+# EE    mov rbp, rsp        MOV r/m64, r64      REX.W + 89 /r       11 100 101
+48 89 E5
+# F1    mov BYTE [grid + 40*1 + 25], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 5E 04 40 00 01     # grid + 40*1 + 25 = 0x40045E [FIXME]
+# F9    mov BYTE [grid + 40*2 + 23], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 84 04 40 00 01     # grid + 40*2 + 23 = 0x400484 [FIXME]
+# 0101  mov BYTE [grid + 40*2 + 25], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 86 04 40 00 01     # grid + 40*2 + 25 = 0x400486 [FIXME]
+# 0109  mov BYTE [grid + 40*3 + 13], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 A2 04 40 00 01     # grid + 40*3 + 13 = 0x4004A2 [FIXME]
+# 0111  mov BYTE [grid + 40*3 + 14], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 A3 04 40 00 01     # grid + 40*3 + 14 = 0x4004A3 [FIXME]
+# 0119  mov BYTE [grid + 40*3 + 21], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 AA 04 40 00 01     # grid + 40*3 + 21 = 0x4004AA [FIXME]
+# 0121  mov BYTE [grid + 40*3 + 22], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 AB 04 40 00 01     # grid + 40*3 + 22 = 0x4004AB [FIXME]
+# 0129  mov BYTE [grid + 40*3 + 35], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 B8 04 40 00 01     # grid + 40*3 + 35 = 0x4004B8 [FIXME]
+# 0131  mov BYTE [grid + 40*3 + 36], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 B9 04 40 00 01     # grid + 40*3 + 36 = 0x4004B9 [FIXME]
+# 0139  mov BYTE [grid + 40*4 + 12], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 C9 04 40 00 01     # grid + 40*4 + 12 = 0x4004C9 [FIXME]
+# 0141  mov BYTE [grid + 40*4 + 16], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 CD 04 40 00 01     # grid + 40*4 + 16 = 0x4004CD [FIXME]
+# 0149  mov BYTE [grid + 40*4 + 21], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 D2 04 40 00 01     # grid + 40*4 + 21 = 0x4004D2 [FIXME]
+# 0151  mov BYTE [grid + 40*4 + 22], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 D3 04 40 00 01     # grid + 40*4 + 22 = 0x4004D3 [FIXME]
+# 0159  mov BYTE [grid + 40*4 + 35], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 E0 04 40 00 01     # grid + 40*4 + 35 = 0x4004E0 [FIXME]
+# 0161  mov BYTE [grid + 40*4 + 36], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 E1 04 40 00 01     # grid + 40*4 + 36 = 0x4004E1 [FIXME]
+# 0169  mov BYTE [grid + 40*5 + 1],  0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 E6 04 40 00 01     # grid + 40*5 + 1 = 0x4004E6 [FIXME]
+# 0171  mov BYTE [grid + 40*5 + 2], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 E7 04 40 00 01     # grid + 40*5 + 2 = 0x4004E7 [FIXME]
+# 0179  mov BYTE [grid + 40*5 + 11], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 F0 04 40 00 01     # grid + 40*5 + 11 = 0x4004F0 [FIXME]
+# 0181  mov BYTE [grid + 40*5 + 17], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 F6 04 40 00 01     # grid + 40*5 + 17 = 0x4004F6 [FIXME]
+# 0189  mov BYTE [grid + 40*5 + 21], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 FA 04 40 00 01     # grid + 40*5 + 21 = 0x4004FA [FIXME]
+# 0191  mov BYTE [grid + 40*5 + 22], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 FB 04 40 00 01     # grid + 40*5 + 22 = 0x4004FB [FIXME]
+# 0199  mov BYTE [grid + 40*6 + 1],  0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 0E 05 40 00 01     # grid + 40*6 + 1 = 0x40050E [FIXME]
+# 01A1  mov BYTE [grid + 40*6 + 2],  0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 0F 05 40 00 01     # grid + 40*6 + 2 = 0x40050F [FIXME]
+# 01A9  mov BYTE [grid + 40*6 + 11], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 18 05 40 00 01     # grid + 40*6 + 11 = 0x400518 [FIXME]
+# 01B1  mov BYTE [grid + 40*6 + 15], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 1C 05 40 00 01     # grid + 40*6 + 15 = 0x40051C [FIXME]
+# 01B9  mov BYTE [grid + 40*6 + 17], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 1E 05 40 00 01     # grid + 40*6 + 17 = 0x40051E [FIXME]
+# 01C1  mov BYTE [grid + 40*6 + 18], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 1F 05 40 00 01     # grid + 40*6 + 18 = 0x40051F [FIXME]
+# 01C9  mov BYTE [grid + 40*6 + 23], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 24 05 40 00 01     # grid + 40*6 + 23 = 0x400524 [FIXME]
+# 01D1  mov BYTE [grid + 40*6 + 25], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 26 05 40 00 01     # grid + 40*6 + 25 = 0x400526 [FIXME]
+# 01D9  mov BYTE [grid + 40*7 + 11], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 40 05 40 00 01     # grid + 40*7 + 11 = 0x400540 [FIXME]
+# 01E1  mov BYTE [grid + 40*7 + 17], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 46 05 40 00 01     # grid + 40*7 + 17 = 0x400546 [FIXME]
+# 01E9  mov BYTE [grid + 40*7 + 25], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 4E 05 40 00 01     # grid + 40*7 + 25 = 0x40054E [FIXME]
+# 01F1  mov BYTE [grid + 40*8 + 12], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 69 05 40 00 01     # grid + 40*8 + 12 = 0x400569 [FIXME]
+# 01F9  mov BYTE [grid + 40*8 + 16], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 6D 05 40 00 01     # grid + 40*8 + 16 = 0x40056D [FIXME]
+# 0201  mov BYTE [grid + 40*9 + 13], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 92 05 40 00 01     # grid + 40*9 + 13 = 0x400592 [FIXME]
+# 0209  mov BYTE [grid + 40*9 + 14], 0x1
+# 	                        MOV r/m8, imm8      C6 /0 ib            00 000 100
+C6 04 25 93 05 40 00 01     # grid + 40*9 + 14 = 0x400593 [FIXME]
+# 0211  pop rbp             POP r64             58+rd
+5D
+# 0212  ret                 RET                 C3
+C3
+
+
+# OFF   ASM                 INST                OPCODE              ModRM
+# 0213  display_grid:  
+# 0213  push rbp            PUSH r64            50+rd
+55
+# 0214  mov rbp, rsp        MOV r/m64, r64      REX.W + 89 /r       11 100 101
+48 89 E5
+# 0217  sub rsp, 16         SUB r/m64, imm8     REX.W + 83 /5 ib    11 101 100
+48 83 EC 10
+# 021B  mov DWORD [rbp - 8], 0          ; y = 0
+#                           MOV r/m32, imm32    C7 /0 id            01 000 101
+C7 45 F8 00 00 00 00
+# 0222  .d_fory:
+# 0222  cmp DWORD [rbp - 8], HEIGHT
+#                           CMP r/m32, imm8     83 /7 ib            01 111 101
+83 7D F8 28 # HEIGHT = 40 = 0x28
+# 0226  jge .d_endfory      JGE rel8            7D cb
+7D 61                       # 0x288 - 0x227 = 0x61 [FIXME]
+# 0228  mov DWORD [rbp - 4], 0          ; x = 0
+#                           MOV r/m32, imm32    C7 /0 id            01 000 101
+C7 45 FC 00 00 00 00
+# 022F  .d_forx:
+# 022F  cmp DWORD [rbp - 4], WIDTH
+#                           CMP r/m32, imm8     83 /7 ib            01 111 101
+83 7D FC 28 # WIDTH = 40 = 0x28
+# 0233  jge .d_endforx      JGE rel8            7D cb
+7D 42                       # (0x276 - 0x234) = 0x42 [FIXME]
+# 0235  mov eax, DWORD [rbp - 8]
+#                           MOV r32, r/m32      8B /r               01 000 101    
+8B 45 F8
+# 0238  imul eax, HEIGHT    IMUL r32, r/m32, imm8   
+#                                               6B /r ib            11 000 000
+6B C0 28 # HEIGHT = 40 = 0x28
+# 023B  add eax, DWORD [rbp - 4]
+#                           ADD r32, r/m32      03 /r               01 000 101
+03 45 FC
+# 023E  mov al, BYTE [grid + eax] 
+#                           MOV r8, r/m8        8A /r               10 000 000 
+#                           67: Address-size override prefix 
+67 8A 80 1D 04 40 00        # [FIXME]
+# 0245  test al, al         TEST r/m8, r8       84 /r               11 000 000
+84 C0
+# 0247  jz .d_else          JZ rel8             74 cb
+74 15                       # (0x25D - 0x248) = 0x15 [FIXME]
+# 0249  mov rdi, char_o     ; 'o '
+#                           MOV r/m64, imm32    REX.W C7 /0 id      11 000 111
+48 C7 C7 0E 04 40 00        # [FIXME]
+# 0250  mov rsi, 2          MOV r/m64, imm32    REX.W C7 /0 id      11 000 110
+48 C7 C6 02 00 00 00
+# 0257  call puts           CALL rel32          E8 cd
+E8 75 FE FF FF              # - (0x25C - 0xD1) = - 0x18B =  0x1 + 0xFFFFFFFF - 0x18B [FIXME]
+# 025C  jmp .d_endif        JMP rel8            EB cb
+EB 13                       # (0x270 - 0x25D) = 0x13 [FIXME]
+# 025E  .d_else:
+# 025E  mov rdi, char_dot   ; '. '
+#                           MOV r/m64, imm32    REX.W C7 /0 id      11 000 111
+48 C7 C7 10 04 40 00        # [FIXME]
+# 0265  mov rsi, 2          MOV r/m64, imm32    REX.W C7 /0 id      11 000 110
+48 C7 C6 02 00 00 00
+# 026C  call puts           CALL rel32          E8 cd
+E8 60 FE FF FF              # - (0x271 - 0xD1) = - 0x1A0 = 0x1 + 0xFFFFFFFF - 0x1A0 [FIXME]
+# 0271  .d_endif:
+# 0271  add DWORD [rbp - 4], 1          ; x++
+#                           ADD r/m32, imm8     83 /0 ib            01 000 101
+83 45 FC 01
+# 0275  jmp .d_forx         JMP rel8            EB cb
+EB B8                       # - (0x276 - 0x22E) = - 0x48 = 1 + 0xFF - 0x48 = 0xB8 [FIXME]
+# 0277  .d_endforx:
+# 0277  mov rdi, char_nl    ; '\n'
+#                           MOV r/m64, imm32    REX.W C7 /0 id      11 000 111
+48 C7 C7 12 04 40 00        # [FIXME]
+# 027E  call putc           CALL rel32          E8 cd
+E8 2E FE FF FF              # - (0x283 - 0xB1) = - 0x1D2 = 0x1 + 0xFFFFFFFF - 0x1D2 [FIXME]
+# 0283  add DWORD [rbp - 8], 1          ; y++
+#                           ADD r/m32, imm8     83 /0 ib            01 000 101
+83 45 F8 01
+# 0287  jmp .d_fory         JMP rel8            EB cb
+EB 99                       # - (0x288 - 0x221) = - 0x67 = 1 + 0xFF - 0x67 = 0x99 [FIXME]
+# 0289  .d_endfory:
+# 0289  leave               LEAVE               C9
+C9
+# 028A  ret                 RET                 C3
+C3
+
+
+# OFF   ASM                 INST                OPCODE              ModRM
+# 028B  modulo:        
+# 028B  push rbp            PUSH r64            50+rd
+55
+# 028C  mov rbp, rsp        MOV r/m64, r64      REX.W + 89 /r       11 100 101
+48 89 E5
+# 028F  mov eax, edi        MOV r/m32, r32      89 /r               11 111 000
+89 F8
+# 0291  cdq                 CDQ                 99
+99
+# 0292  mov ebx, esi        MOV r/m32, r32      89 /r               11 110 011
+89 F3
+# 0294  idiv ebx            IDIV r/m32          F7 /7               11 111 011
+F7 FB
+# 0296  mov eax, edx        MOV r/m32, r32      89 /r               11 010 000
+89 D0
+# 0298  add eax, esi        ADD r/m32, r32      03 /r               11 110 000
+01 F0
+# 029A  cdq                 CDQ                 99
+99
+# 029B  idiv ebx            IDIV r/m32          F7 /7               11 111 011
+F7 FB
+# 029D  mov eax, edx        MOV r/m32, r32      89 /r               11 010 000
+89 D0
+# 029F  pop rbp             POP r64             58+rd
+5D
+# 02A0  ret                 RET                 C3
+C3
+
+
+# OFF   ASM                 INST                OPCODE              ModRM
+# 02A1  count_neighbors:
+# 02A1  push rbp            PUSH r64            50+rd
+55
+# 02A2  mov rbp, rsp        MOV r/m64, r64      REX.W + 89 /r       11 100 101
+48 89 E5
+# 02A5  sub rsp, 16*2       SUB r/m64, imm8     REX.W + 83 /5 ib    11 101 100
+48 83 EC 20
+# 02A9  mov DWORD [rbp - 30], 0     ; int count = 0
+#                           MOV r/m32, imm32    C7 /0 id            01 000 101
+C7 45 E2 00 00 00 00
+# 02B0  mov DWORD [rbp - 8], edi    ; int y
+#                           MOV r/m32, r32      89 /r               01 111 101
+89 7D F8
+# 02B3  mov DWORD [rbp - 4], esi    ; int x
+#                           MOV r/m32, r32      89 /r               01 110 101
+89 75 FC
+# 02B6  mov DWORD [rbp - 16], -1    ; int dy = -1
+#                           MOV r/m32, imm32    C7 /0 id            01 000 101
+C7 45 F0 FF FF FF FF
+# 02BD  .cn_fory:
+# 02BD  mov DWORD [rbp - 12], -1    ; int dx = -1
+#                           MOV r/m32, imm32    C7 /0 id            01 000 101
+C7 45 F4 FF FF FF FF
+# 02C4  cmp DWORD [rbp - 16], 1
+#                           CMP r/m32, imm8     83 /7 ib            01 111 101
+83 7D F0 01
+# 02C8  jg .cn_endfory      JG rel8             7F cb
+7F 50                       # (0x31A - 0x2CA) = 0x50 [FIXME]
+# 02CA  .cn_forx:
+# 02CA  cmp DWORD [rbp - 12], 1
+#                           CMP r/m32, imm8     83 /7 ib            01 111 101
+83 7D F4 01
+# 02CE  jg .cn_endforx      JG rel8             7F cb
+7F 44                       # (0x314 - 0x2D0) = 0x44 [FIXME]
+# 02D0  mov edi, DWORD [rbp - 8]    ; y
+#                           MOV r32, r/m32      8B /r               01 111 101
+8B 7D F8
+# 02D3  add edi, DWORD [rbp - 16]   ; dy
+#                           ADD r32, r/m32      03 /r               01 111 101
+03 7D F0
+# 02D6  mov esi, HEIGHT
+#                           MOV r32, imm32      B8+rd id
+BE 28 00 00 00 # HEIGHT
+# 02DB  call modulo         CALL rel32          E8 cd
+E8 AB FF FF FF              # - (0x2E0 - 0x28B) = - 0x55 = 0x1 + 0xFFFFFFFF - 0x55 [FIXME]
+# 02E0  mov DWORD [rbp - 24], eax   ; int iy = modulo(y + dy, HEIGHT)
+#                           MOV r/m32, r32      89 /r               01 000 101
+89 45 E8
+# 02E3  mov edi, DWORD [rbp - 4]
+#                           MOV r32, r/m32      8B /r               01 111 101
+8B 7D FC
+# 02E6  add edi, DWORD [rbp - 12]
+#                           ADD r32, r/m32      03 /r               01 111 101
+03 7D F4
+# 02E9  mov esi, WIDTH      MOV r32, imm32      B8+rd id
+BE 28 00 00 00 # WIDTH = 40 = 0x28
+# 02EE  call modulo         CALL rel32          E8 cd
+E8 98 FF FF FF              # - (0x2F3 - 0x28B) = - 0x68 = 0x1 + 0xFFFFFFFF - 0x68 [FIXME]
+# 02F3  mov DWORD [rbp - 20], eax   ; int ix = modulo(x + dx, WIDTH)
+#                           MOV r/m32, r32      89 /r               01 000 101
+89 45 EC
+# 02F6  mov eax, DWORD [rbp - 24]
+#                           MOV r32, r/m32      8B /r               01 000 101
+8B 45 E8
+# 02F9  imul eax, HEIGHT    IMUL r32, r/m32, imm8
+#                                               6B /r ib            11 000 000
+6B C0 28 # HEIGHT = 40 = 0x28
+# 02FC  add eax, DWORD [rbp - 20]
+#                           ADD r32, r/m32      03 /r               01 000 101
+03 45 EC
+# 02FF  mov al, BYTE [grid + eax]
+#                           MOV r8, r/m8        8A /r               10 000 000
+#                           67: Address-size override prefix 
+67 8A 80 1D 04 40 00        # [FIXME]
+# 0306  test al, al         TEST r/m8, r8       84 /r               11 000 000
+84 C0
+# 0308  jz .cn_else         JZ rel8             74 cb
+74 04                       # ( 0x30E - 0x30A) = 4 [FIXME]
+# 030A  add DWORD [rbp - 30], 1     ; count += 1
+#                           ADD r/m32, imm8     83 /0 ib            01 000 101
+83 45 E2 01
+# 030E  .cn_else:
+# 030E  add DWORD [rbp - 12], 1     ; dx++
+#                           ADD r/m32, imm8     83 /0 ib            01 000 101
+83 45 F4 01
+# 0312  jmp .cn_forx        JMP rel8            EB cb
+EB B6                       # - (0x314 - 0x2CA) = - 0x4A = 0x1 + 0xFF - 0x4A = 0xB6 [FIXME]
+# 0314  .cn_endforx:
+# 0314  add DWORD [rbp - 16], 1     ; dy++
+#                           ADD r/m32, imm8     83 /0 ib            01 000 101
+83 45 F0 01
+# 0318  jmp .cn_fory        JMP rel8            EB cb
+EB A3                       # - (0x31A - 0x2BD) = - 0x5D = 0x1 + 0xFF - 0x5D = 0xA3 [FIXME]
+# 031A  .cn_endfory:
+# 031A  mov eax, DWORD [rbp - 8]
+#                           MOV r32, r/m32      8B /r               01 000 101
+8B 45 F8
+# 031D  imul eax, HEIGHT    IMUL r32, r/m32, imm8   
+#                                               6B /r id            11 000 000
+6B C0 28
+# 0320  add eax, [rbp - 4]
+#                           ADD r32, r/m32      03 /r               01 000 101
+03 45 FC
+# 0323  mov al, BYTE [grid + eax]
+#                           MOV r8, r/m8        8A /r               10 000 000 
+#                           67: Address-size override prefix 
+67 8A 80 1D 04 40 00        # [FIXME]
+# 032A  test al, al         TEST r/m8, r8       84 /r               11 000 000
+84 C0
+# 032C  jz .cn_else2        JZ rel8             74 cb
+74 04                       # 0x332 - 0x32E = 0x4 [FIXME]
+# 032E  sub DWORD [rbp - 30], 1     ; count -= 1
+#                           SUB r/m32, imm8     83 /5 ib            01 101 101
+83 6D E2 01
+# 0332  .cn_else2:
+# 0332  mov eax, DWORD [rbp - 30]
+#                           MOV r32, r/m32      8B /r               01 000 101
+8B 45 E2
+# 0335  leave               LEAVE               C9
+C9
+# 0336  ret                 RET                 C3
+C3
+
+
+# OFF   ASM                 INST                OPCODE              ModRM
+# 0337  next_gen: 
+# 0337  push rbp            PUSH r64            50+rd
+55
+# 0338  mov rbp, rsp        MOV r/m64, r64      REX.W + 89 /r       11 100 101
+48 89 E5
+# 033B  sub rsp, 16         SUB r/m64, imm8     REX.W + 83 /5 ib    11 101 100
+48 83 EC 10
+# 033F  mov DWORD [rbp - 12], 0     ; int count = 0
+#                           MOV r/m32, imm32    C7 /0 id            01 000 101
+C7 45 F4 00 00 00 00
+# 0346  mov DWORD [rbp - 8], 0      ; int y = 0
+#                           MOV r/m32, imm32    C7 /0 id            01 000 101
+C7 45 F8 00 00 00 00
+# 034D  .ng_fory:
+# 034D  mov DWORD [rbp - 4], 0      ; int x = 0;
+#                           MOV r/m32, imm32    C7 /0 id            01 000 101
+C7 45 FC 00 00 00 00
+# 0354  cmp DWORD [rbp - 8], HEIGHT
+#                           CMP r/m32, imm8     83 /7 ib            01 111 101
+83 7D F8 28 # HEIGHT = 0x28
+# 0358  jge .ng_endfory     JGE rel8            7D cb
+7D 63                       # (0x3BD - 0x35A) = 0x63 [FIXME]
+# 035A  .ng_forx:
+# 035A  cmp DWORD [rbp - 4], WIDTH
+#                           CMP r/m32, imm8     83 /7 ib            01 111 101
+83 7D FC 28 # WIDTH
+# 035E  jge .ng_endforx     JGE rel8            7D cb
+7D 57                       # (0x3B7 - 0x360) = 0x57 [FIXME]
+# 0360  mov edi, DWORD [rbp - 8]    ; y
+#                           MOV r32, r/m32      8B /r               01 111 101
+8B 7D F8
+# 0363  mov esi, DWORD [rbp - 4]    ; x
+#                           MOV r32, r/m32      8B /r               01 110 101
+8B 75 FC
+# 0366  call count_neighbors   
+#                           CALL rel32          E8 cd
+E8 36 FF FF FF              # - (0x36B - 0x2A1) = - 0xCA = 0x1 + 0xFFFFFFFF - 0xCA [FIXME]
+# 036B  mov DWORD [rbp - 12], eax   ; count = count_neighbors(y, x)
+#                           MOV r/m32, r32      89 /r               01 000 101
+89 45 F4
+# 036E  ; find index [y][y]
+# 036E  mov eax, [rbp - 8]
+#                           MOV r32, r/m32      8B /r               01 000 101
+8B 45 F8
+# 0371  imul eax, HEIGHT    IMUL r32, r/m32, imm8
+#                                               6B /r ib            11 000 000
+6B C0 28 # HEIGHT = 0x28
+# 0374  add eax, [rbp - 4]
+#                           ADD r32, r/m32      03 /r               01 000 101
+03 45 FC
+# 0377  mov ebx, eax        MOV r/m32, r32      89 /r               11 000 011
+89 C3
+# 0379  .if_1:
+# 0379  mov al, BYTE [grid + ebx]
+#                           MOV r8, r/m8        8A /r               10 000 011 
+#                           67: Address-size override prefix 
+67 8A 83 1D 04 40 00        # [FIXME]
+# 0380  test al, al         TEST r/m8, r8       84 /r               11 000 000
+84 C0
+# 0382  jnz .if_2           JNZ rel8            75 cb
+75 0E                       # ( 0x391 - 0x383) = 0xE [FIXME]
+# 0384  .if_11:
+# 0384  cmp DWORD [rbp - 12], 3
+#                           CMP r/m32, imm8     83 /7 ib            01 111 101
+83 7D F4 03
+# 0388  jne .if_2           JNE rel8            75 cb
+75 08                       # ( 0x391 - 0x389) = 0x8 [FIXME]
+# 038A mov BYTE [grid_next + ebx], 1   ; grid_next[y][x] = 1
+#                           MOV r/m8, imm8      C6 /0 ib            10 000 011 
+#                           67: Address-size override prefix 
+67 C6 83 5D 0A 40 00 01     # [FIXME] 
+# 0392  .if_2:
+# 0392  mov al, BYTE [grid + ebx]
+#                           MOV r8, r/m8        8A /r               10 000 011 
+#                           67: Address-size override prefix 
+67 8A 83 1D 04 40 00        # [FIXME]
+# 0399  test al, al         TEST r/m8, r8       84 /r               11 000 000
+84 C0
+# 039B  jz .endif_2         JZ rel8             74 cb
+74 14                       # ( 0x3B0 - 0x39C) = 0x14 [FIXME]
+# 039D  cmp DWORD [rbp - 12], 2
+#                           CMP r/m32, imm8     83 /7 ib            01 111 101
+83 7D F4 02
+# 03A1  je .short           JE rel8             74 cb
+74 06                       # (0x3A8 - 0x3A2) = 0x6 [FIXME]
+# 03A3  cmp DWORD [rbp - 12], 3
+#                           CMP r/m32, imm8     83 /7 ib            01 111 101
+83 7D F4 03
+# 03A7  jne .endif_2        JNE rel8            75 cd
+75 08                       # (0x3B0- 0x3A8) = 0x8 [FIXME]
+# 03A9  .short:
+# 03A9  mov BYTE [grid_next + ebx], 1   ; grid_next[y][x] = 1
+#                           MOV r/m8, imm8      C6 /0 ib            10 000 011 
+#                           67: Address-size override prefix 
+67 C6 83 5D 0A 40 00 01     # [FIXME]
+# 03B1  .endif_2:
+# 03B1  add DWORD [rbp - 4], 1          ; x++
+#                           ADD r/m32, imm8     83 /0 ib            01 000 101
+83 45 FC 01
+# 03B5  jmp .ng_forx        JMP rel8            EB cb
+EB A3                       # - (0x3B6 - 0x359) = - 0x5D = 0x1 + 0xFF - 0x5D = 0xA3 [FIXME]
+# 03B7  .ng_endforx:
+# 03B7  add DWORD [rbp - 8], 1          ; y++
+#                           ADD r/m32, imm8     83 /0 ib            01 000 101
+83 45 F8 01
+# 03BB  jmp .ng_fory        JMP rel8            EB cb
+EB 90                       # - (0x3BC - 0x34C) = - 0x70 = 0x1 + 0xFF - 0x70 = 0x90 [FIXME]
+# 03BD  .ng_endfory:
+# 03BD  ; copy grid_next to grid
+# 03BD  mov DWORD [rbp - 8], 0          ; int y = 0
+#                           MOV r/m32, imm32    C7 /0 id            01 000 101
+C7 45 F8 00 00 00 00
+# 03C4  .cp_fory:
+# 03C4  cmp DWORD [rbp - 8], HEIGHT
+#                           CMP r/m32, imm8     83 /7 ib            01 111 101
+83 7D F8 28 # HEIGHT = 0x28
+# 03C8  jge .cp_endfory     JGE rel8            7D cb
+7D 38                       # (0x401 - 0x3C9) = 0x38 = [FIXME]
+# 03CA  mov DWORD [rbp - 4], 0          ; int x = 0
+#                           MOV r/m32, imm32    C7 /0 id            01 000 101
+C7 45 FC 00 00 00 00
+# 03D1  .cp_forx:
+# 03D1  cmp DWORD [rbp - 4], WIDTH
+#                           CMP r/m32, imm8     83 /7 ib            01 111 101
+83 7D FC 28 # HEIGHT = 0x23
+# 03D5  jge .cp_endforx     JGE rel8            7D cb
+7D 25                       # (0x3FB - 0x3D6) = 0x25 [FIXME]
+#
+# 03D7  ; find index [y][x]
+# 03D7  mov eax, [rbp - 8]
+#                           MOV r32, r/m32      8B /r               01 000 101
+8B 45 F8
+# 03DA  imul eax, HEIGHT    IMUL r32, r/m32, imm8
+#                                               6B /r ib            11 000 000
+6B C0 28 # HEIGHT = 0x28
+# 03DD  add eax, [rbp - 4]
+#                           ADD r32, r/m32      03 /r               01 000 101
+03 45 FC
+# 03E0  mov cl, BYTE [grid_next + eax]
+#                           MOV r8, r/m8        8A /r               10 001 000 
+#                           67: Address-size override prefix 
+67 8A 88 5D 0A 40 00        # [FIXME]
+# 03E7  mov BYTE [grid + eax], cl       ; grid[y][x] = grid_next[y][x]
+# 	                        MOV r/m8, r8        88 /r               10 001 000
+#                           67: Address-size override prefix 
+67 88 88 1D 04 40 00        # [FIXME]
+# 03EE  mov BYTE [grid_next + eax], 0   ; grid_next[y][x] = 0
+#                           MOV r/m8, imm8      C6 /0 ib            10 000 000 
+#                           67: Address-size override prefix 
+67 C6 80 5D 0A 40 00 00     # [FIXME]
+# 03F6  add DWORD [rbp - 4], 1          ; x++
+# 	                        ADD r/m32, imm8     83 /0 ib            01 000 101
+83 45 FC 01
+# 03FA  jmp .cp_forx        JMP rel8            EB cb
+EB D5                       # - (0x3FB - 0x3D0) = - 0x2B = 0x1 + 0xFF - 0x2B = 0xD5 [FIXME]
+# 03FC  .cp_endforx:
+# 03FC  add DWORD [rbp - 8], 1          ; y++
+# 	                        ADD r/m32, imm8     83 /0 ib            01 000 101
+83 45 F8 01
+# 0400  jmp .cp_fory        JMP rel8            EB cb
+EB C2                       # - (0x401 - 0x3C3) = - 0x3E = 0x1 + 0xFF - 0x3E = 0xC2 [FIXME]
+# 0402  .cp_endfory:
+# 0402  leave               LEAVE               C9
+C9
+# 0403  ret                 RET                 C3
+C3
+
+
+# OFF   ASM                 INST                OPCODE              ModRM
+# 0404  sleep: 
+# 0404  mov ecx, 300000000
+#                           MOV r32, imm32 	    B8+rd id
+B9 00 A3 E1 11
+# 0409  .sleep_loop:
+# 0409  dec ecx             DEC r/m32           FF /1               11 001 001
+FF C9
+# 040B  jnz .sleep_loop     JNZ rel8            75 cb
+75 FC                       # - (0x40D - 0x409) = - 0x4 = 0x1 + 0xFF - 0x4 = 0xFC [FIXME]
+# 040D  ret                 RET                 C3
+C3
+
+
+# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> DATA <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+# 040E  section .data
+# 040E  char_o: db 'o '
+6F 20
+# 0410  char_dot: db '. '
+2E 20
+# 0412  char_nl: db 10
+0A #10
+# 0413  escape_msg: ; "\033[2J\033[0;0f"
+# db 27, 91, 50, 74, 27, 91, 48, 59, 48, 102
+1B 5B 32 4A 1B 5B 30 3B 30 66
+# 041D  grid: times 1600 db 0
+# 041D + hex(1600) = 041D + 0640 = 0xA5D
+# 0A5D  grid_next: times 1600 db 0
+# 0A5D + hex(1600) = 0A5D + 0640 = 0x109D
