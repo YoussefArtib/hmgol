@@ -31,7 +31,7 @@ can be less bytes:
 
 # TODO:
 - [ ] Write the 32 bit version.
-- [ ] Optimize the byte code.
+- [ ] Optimize the code.
 - [ ] Create a .data section instead of putting the data in the program header.
 
 # References:
