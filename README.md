@@ -26,6 +26,7 @@ can be less bytes:
         INC r/m32           FF /0           01 000 101
         FF 45 FC
     ...
+    ```
 - Instead of using ```CALL rel32``` we can use ```CALL rel8``` or ```CALL rel16```
 - Instead of ```mov rdi, 1```, we can ```xor rdi, rdi``` then ```inc rdi.```
 
@@ -35,7 +36,7 @@ can be less bytes:
     - [ ] Create a .data section instead of putting the data in the program header.
 
 # References:
-https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
-https://www.felixcloutier.com/x86/
-https://wiki.osdev.org/X86-64_Instruction_Encoding
-http://www.c-jump.com/CIS77/CPU/x86/lecture.html
+- https://en.wikipedia.org/wiki/Executable_and_Linkable_Format
+- https://www.felixcloutier.com/x86/
+- https://wiki.osdev.org/X86-64_Instruction_Encoding
+- http://www.c-jump.com/CIS77/CPU/x86/lecture.html
