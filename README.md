@@ -15,18 +15,17 @@ $ ./gol64
 
 # Things to change to make it better:
 - For example:
-    ```
-        add DWORD [rbp - 4], 1          ; x++
-        ADD r/m32, imm8     83 /0 ib        01 000 101
-        83 45 FC 01
-    ```
+```
+    add DWORD [rbp - 4], 1          ; x++
+    ADD r/m32, imm8     83 /0 ib        01 000 101
+    83 45 FC 01
+```
 can be less bytes:
-    ```
-        inc DWORD [rbp - 4]
-        INC r/m32           FF /0           01 000 101
-        FF 45 FC
-    ...
-    ```
+```
+    inc DWORD [rbp - 4]
+    INC r/m32           FF /0           01 000 101
+    FF 45 FC
+```
 - Instead of using ```CALL rel32``` we can use ```CALL rel8``` or ```CALL rel16```
 - Instead of ```mov rdi, 1```, we can ```xor rdi, rdi``` then ```inc rdi.```
 
